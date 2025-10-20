@@ -4,51 +4,51 @@ import sys
 from PIL import Image, ImageFilter, ImageEnhance, ImageOps
 from pathlib import Path
 
-os.makedirs("images/by_file", exist_ok=True)
 
 def increase_by_folder(folder):
-    folder_name = folder.split("/")[1]
-
-    os.makedirs(f"images/{folder_name}", exist_ok=True)
-
     images = Path(folder)
+    out_root = Path("augmented_directory")
+    out_root.mkdir(exist_ok=True)
 
-    for element in images.iterdir():
+    # Boucle sur chaque sous-dossier
+    for subfolder in images.iterdir():
+        if subfolder.is_dir():
+            out_dir = out_root / subfolder.name
+            out_dir.mkdir(exist_ok=True)
 
-        f_name = element.name.split(".")
-        name = f_name[0]
-        extension = f_name[1]
-        img = Image.open(element)
+            for element in subfolder.iterdir():
+                if element.suffix.lower() in [".jpg", ".jpeg", ".png"]:
+                    img = Image.open(element)
+                    name = element.stem
+                    ext = element.suffix
 
-        # 1. Rotation (ici 45°)
-        rotated = img.rotate(45)
-        rotated.save(f"images/{folder_name}/{name}_rotated.{extension}")
+                    # 1. Rotation
+                    img.rotate(45).save(out_dir / f"{name}_rotated{ext}")
 
-        # 2. Blur (flou gaussien)
-        blurred = img.filter(ImageFilter.GaussianBlur(radius=5))
-        blurred.save(f"images/{folder_name}/{name}_blurred.{extension}")
+                    # 2. Blur
+                    img.filter(ImageFilter.GaussianBlur(radius=5)).save(out_dir / f"{name}_blurred{ext}")
 
-        # 3. Contrast (x1.5)
-        contrast = ImageEnhance.Contrast(img).enhance(1.5)
-        contrast.save(f"images/{folder_name}/{name}_contrast.{extension}")
+                    # 3. Contrast
+                    ImageEnhance.Contrast(img).enhance(1.5).save(out_dir / f"{name}_contrast{ext}")
 
-        # 4. Scaling (redimensionner en 200x200)
-        scaled = img.resize((200, 200))
-        scaled.save(f"images/{folder_name}/{name}_scaled.{extension}")
+                    # 4. Zoom (x2)
+                    w, h = img.size
+                    crop = img.crop((w/4, h/4, w*3/4, h*3/4)).resize((w, h))
+                    crop.save(out_dir / f"{name}_zoom{ext}")
 
-        # 5. Illumination (luminosité x1.8)
-        bright = ImageEnhance.Brightness(img).enhance(1.8)
-        bright.save(f"images/{folder_name}/{name}_bright.{extension}")
+                    # 5. Illumination
+                    ImageEnhance.Brightness(img).enhance(1.8).save(out_dir / f"{name}_bright{ext}")
 
-        # 6. Projective transform (perspective)
-        # on définit les coefficients pour transformer
-        coeffs = (1, 0.2, -100,   # ligne 1
-                0.2, 1, -50,    # ligne 2
-                0.001, 0.001)   # ligne 3 (courbure perspective)
-        projective = img.transform((img.width, img.height), Image.PERSPECTIVE, coeffs)
-        projective.save(f"images/{folder_name}/{name}_projective.{extension}")
+                    # 6. Projective
+                    coeffs = (1, 0.2, -100, 0.2, 1, -50, 0.001, 0.001)
+                    img.transform((w, h), Image.PERSPECTIVE, coeffs).save(out_dir / f"{name}_projective{ext}")
+
+    print(f"Toutes les images ont été augmentées dans : {out_root}")
 
 def increase_by_file(file):
+
+    os.makedirs("by_file", exist_ok=True)
+
     file = Path(file)
     img = Image.open(file)
 
@@ -60,15 +60,15 @@ def increase_by_file(file):
 
     # 1. Rotation (ici 45°)
     rotated = img.rotate(45)
-    rotated.save(f"images/by_file/{name}_rotated.{extension}")
+    rotated.save(f"by_file/{name}_rotated.{extension}")
 
     # 2. Blur (flou gaussien)
     blurred = img.filter(ImageFilter.GaussianBlur(radius=1))
-    blurred.save(f"images/by_file/{name}_blurred.{extension}")
+    blurred.save(f"by_file/{name}_blurred.{extension}")
 
     # 3. Contrast (x1.9)
     contrast = ImageEnhance.Contrast(img).enhance(1.9)
-    contrast.save(f"images/by_file/{name}_contrast.{extension}")
+    contrast.save(f"by_file/{name}_contrast.{extension}")
 
     # 4. Scaling (Zoom en x2)
     w, h = img.size
@@ -81,11 +81,11 @@ def increase_by_file(file):
 
     zoomed = img.crop((left, top, right, bottom))
     zoomed = zoomed.resize((w, h))  # remettre la taille originale
-    zoomed.save(f"images/by_file/{name}_zoom.{extension}")
+    zoomed.save(f"by_file/{name}_zoom.{extension}")
 
     # 5. Illumination (luminosité x1.8)
     bright = ImageEnhance.Brightness(img).enhance(1.8)
-    bright.save(f"images/by_file/{name}_bright.{extension}")
+    bright.save(f"by_file/{name}_bright.{extension}")
 
     # 6. Projective transform (perspective)
     # on définit les coefficients pour transformer
@@ -93,21 +93,13 @@ def increase_by_file(file):
             0.2, 1, -50,    # ligne 2
             0.001, 0.001)   # ligne 3 (courbure perspective)
     projective = img.transform((img.width, img.height), Image.PERSPECTIVE, coeffs)
-    projective.save(f"images/by_file/{name}_projective.{extension}")
+    projective.save(f"by_file/{name}_projective.{extension}")
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: python Augmentation.py <images_folder>")
         sys.exit()
 
-    # increase_by_folder(sys.argv[1])
-
     increase_by_file(sys.argv[1])
 
-    folder = sys.argv[1].split("/")[1]
-
-    print(folder)
-
-
-# REPRENDRE UN NOUVEAU DOSSIER IMAGES PROPRES.
-# RETOURNER LE DATA SET DANS UN DOSSIER AUGMENTED_DIRECTORY
+    # increase_by_folder(sys.argv[1])
