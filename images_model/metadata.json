@@ -1,0 +1,16 @@
+{
+  "classes": [
+    "Grape_Black_rot",
+    "Grape_Esca",
+    "Grape_healthy",
+    "Grape_spot"
+  ],
+  "img_size": [
+    224,
+    224
+  ],
+  "num_classes": 4,
+  "final_train_accuracy": 0.9744142889976501,
+  "final_val_accuracy": 0.9778597950935364,
+  "epochs": 20
+}
