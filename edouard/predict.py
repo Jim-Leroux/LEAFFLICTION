@@ -54,7 +54,6 @@ def apply_transformation(img_path):
 def create_prediction_display(original, transformed, predicted_class, confidence):
     fig = plt.figure(figsize=(12, 6))
     fig.patch.set_facecolor('black')
-
     ax1 = plt.subplot(1, 2, 1)
     ax1.imshow(original)
     ax1.axis('off')
@@ -64,27 +63,22 @@ def create_prediction_display(original, transformed, predicted_class, confidence
     ax2.imshow(transformed)
     ax2.axis('off')
     ax2.set_title('Transformed', color='white', fontsize=14)
-
     fig.suptitle('=== DL classification ===', 
                  color='white', fontsize=18, y=0.95)
 
     prediction_text = f'Class predicted : {predicted_class}'
     confidence_text = f'Confidence : {confidence:.2f}%'
-
     plt.figtext(0.5, 0.08, prediction_text, 
                 ha='center', fontsize=16, color='#00FF00', weight='bold')
     plt.figtext(0.5, 0.02, confidence_text, 
                 ha='center', fontsize=12, color='white')
-    
     plt.tight_layout()
     return fig
 
 def predict_image(model, metadata, img_path):
     img_size = tuple(metadata['img_size'])
     classes = metadata['classes']
-    
     original_img, img_array = preprocess_image(img_path, img_size)
-
     predictions = model.predict(img_array, verbose=0)
     predicted_idx = np.argmax(predictions[0])
     confidence = predictions[0][predicted_idx] * 100
@@ -103,30 +97,22 @@ def main():
     if not Path(model_zip).exists():
         print(f"❌ Erreur: Le fichier '{model_zip}' n'existe pas")
         sys.exit(1)
-    
     if not Path(img_path).exists():
         print(f"❌ Erreur: L'image '{img_path}' n'existe pas")
         sys.exit(1)
-    
     print("=" * 70)
     print("🌿 LEAFFLICTION - PREDICTION")
     print("=" * 70)
-    
     print(f"\n📦 Extraction du modèle depuis {model_zip}...")
     model_dir = extract_model(model_zip)
-    
     print("🧠 Chargement du modèle...")
     model, metadata = load_model_and_metadata(model_dir)
-    
     print(f"   Classes disponibles: {len(metadata['classes'])}")
     print(f"   Accuracy du modèle: {metadata['final_val_accuracy']*100:.2f}%")
-    
     print(f"\n🖼️  Traitement de l'image: {Path(img_path).name}")
     original, transformed = apply_transformation(img_path)
-    
     print("🔍 Prédiction en cours...")
     predicted_class, confidence = predict_image(model, metadata, img_path)
-    
     print("\n" + "=" * 70)
     print("📊 RÉSULTAT")
     print("=" * 70)
@@ -137,7 +123,6 @@ def main():
     fig = create_prediction_display(original, transformed, predicted_class, confidence)
     plt.show()
     shutil.rmtree(model_dir)
-    
     print("\n✅ Prédiction terminée!\n")
 
 
