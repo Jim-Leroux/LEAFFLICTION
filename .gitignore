@@ -1,0 +1,14 @@
+*.zip
+*.jpg
+*.jpeg
+*.png
+*.bmp
+*.gif
+*.JPG
+*.JPEG
+*.PNG
+*.BMP
+*.GIF
+temp_*/
+images_model.zip
+images/
