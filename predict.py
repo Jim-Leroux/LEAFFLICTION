@@ -41,7 +41,8 @@ def load_model_and_metadata(model_dir):
     num_classes = metadata["num_classes"]
 
     # Rebuild the exact model structure
-    model = models.mobilenet_v2(weights=None)  # No need to download weights, we allow loading ours
+    # No need to download weights, we allow loading ours
+    model = models.mobilenet_v2(weights=None)
     model.classifier[1] = nn.Linear(model.last_channel, num_classes)
 
     # Load state dict
@@ -86,7 +87,9 @@ def apply_transformation(img_path):
     return img_rgb, transformed
 
 
-def create_prediction_display(original, transformed, predicted_class, confidence):
+def create_prediction_display(
+    original, transformed, predicted_class, confidence
+):
     fig = plt.figure(figsize=(12, 6))
     fig.patch.set_facecolor("black")
     ax1 = plt.subplot(1, 2, 1)
@@ -98,12 +101,24 @@ def create_prediction_display(original, transformed, predicted_class, confidence
     ax2.imshow(transformed)
     ax2.axis("off")
     ax2.set_title("Transformed", color="white", fontsize=14)
-    fig.suptitle("=== DL classification ===", color="white", fontsize=18, y=0.95)
+    fig.suptitle(
+        "=== DL classification ===", color="white", fontsize=18, y=0.95
+    )
 
     prediction_text = f"Class predicted : {predicted_class}"
     confidence_text = f"Confidence : {confidence:.2f}%"
-    plt.figtext(0.5, 0.08, prediction_text, ha="center", fontsize=16, color="#00FF00", weight="bold")
-    plt.figtext(0.5, 0.02, confidence_text, ha="center", fontsize=12, color="white")
+    plt.figtext(
+        0.5,
+        0.08,
+        prediction_text,
+        ha="center",
+        fontsize=16,
+        color="#00FF00",
+        weight="bold",
+    )
+    plt.figtext(
+        0.5, 0.02, confidence_text, ha="center", fontsize=12, color="white"
+    )
     plt.tight_layout()
     return fig
 
@@ -155,10 +170,14 @@ def main():
         print(f"   Classes disponibles: {len(metadata['classes'])}")
 
         if "final_val_accuracy" in metadata:
-            print(f"   Accuracy du modèle: {metadata['final_val_accuracy']*100:.2f}%")
+            print(
+                f"   Accuracy du modèle: "
+                f"{metadata['final_val_accuracy']*100:.2f}%"
+            )
 
         print(f"\n🖼️  Traitement de l'image: {Path(img_path).name}")
-        # Use OpenCV for the visual "transformation" part as per original script
+        # Use OpenCV for the visual "transformation" part as per original
+        # script
         original_vis, transformed_vis = apply_transformation(img_path)
 
         print("🔍 Prédiction en cours...")
@@ -172,7 +191,9 @@ def main():
         print("=" * 70)
 
         print("\n📊 Affichage du résultat...")
-        create_prediction_display(original_vis, transformed_vis, predicted_class, confidence)
+        create_prediction_display(
+            original_vis, transformed_vis, predicted_class, confidence
+        )
         plt.show()
 
     except Exception as e:

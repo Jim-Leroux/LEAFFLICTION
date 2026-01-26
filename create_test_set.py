@@ -60,7 +60,7 @@ def create_test_set(source_folder, n_images=40):
         total_images = len(images)
 
         if total_images == 0:
-            print(f"   ⚠️  Aucune image trouvée, ignoré\n")
+            print("   ⚠️  Aucune image trouvée, ignoré\n")
             continue
 
         if total_images < n_images:
@@ -94,23 +94,29 @@ def create_test_set(source_folder, n_images=40):
         total_test += len(test_images)
         total_remaining += len(remaining_images)
 
-        print(f"   ✅ Test: {len(test_images):4d} | Training: {len(remaining_images):4d}")
+        print(
+            f"   ✅ Test: {len(test_images):4d} | "
+            f"Training: {len(remaining_images):4d}"
+        )
 
     print("\n" + "=" * 70)
     print("✅ SÉPARATION TERMINÉE")
     print("=" * 70)
-    print(f"\n📊 Résumé:")
+    print("\n📊 Résumé:")
     print(f"   • test_set/               : {total_test} images au total")
     print(f"   • dataset_for_training/   : {total_remaining} images au total")
 
-    print(f"\n💡 Prochaines étapes:")
-    print(f"   1️⃣  python Augmentation.py -r dataset_for_training/")
-    print(f"   2️⃣  python train.py augmented_directory/")
-    print(f"   3️⃣  python predict.py model.zip test_set/<classe>/<image>.jpg")
+    print("\n💡 Prochaines étapes:")
+    print("   1️⃣  python Augmentation.py -r dataset_for_training/")
+    print("   2️⃣  python train.py augmented_directory/")
+    print("   3️⃣  python predict.py model.zip test_set/<classe>/<image>.jpg")
 
-    print(f"\n⚠️  IMPORTANT:")
-    print(f"   Le dossier 'test_set/' ne doit JAMAIS être utilisé pour l'entraînement!")
-    print(f"   Ces images sont pour tester le modèle final uniquement.\n")
+    print("\n⚠️  IMPORTANT:")
+    print(
+        "   Le dossier 'test_set/' ne doit JAMAIS être utilisé pour "
+        "l'entraînement!"
+    )
+    print("   Ces images sont pour tester le modèle final uniquement.\n")
 
 
 def main():

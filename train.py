@@ -40,7 +40,10 @@ def check_device():
     print(f"🖥️  Mode de calcul: {DEVICE}")
     if DEVICE.type == "cuda":
         print(f"   GPU: {torch.cuda.get_device_name(0)}")
-        print(f"   Memory Allocated: {torch.cuda.memory_allocated(0) / 1024**2:.2f} MB")
+        print(
+            f"   Memory Allocated: "
+            f"{torch.cuda.memory_allocated(0) / 1024**2:.2f} MB"
+        )
     else:
         print("   ⚠️  Utilisation du CPU. L'entraînement sera plus lent.")
 
@@ -58,7 +61,7 @@ def organize_dataset(source_folder):
             + len(list((source / cls).glob("*.[jJ][pP][eE][gG]")))
             + len(list((source / cls).glob("*.[pP][nN][gG]")))
         )
-        print(f"   {i+1}. {cls}: {n_images} images")
+        print(f"   {i + 1}. {cls}: {n_images} images")
         total_images += n_images
 
     temp_folder = Path("temp_dataset")
@@ -70,7 +73,11 @@ def organize_dataset(source_folder):
     train_dir.mkdir(parents=True, exist_ok=True)
     val_dir.mkdir(parents=True, exist_ok=True)
 
-    print(f"\n🔄 Organisation du dataset (split {int((1-VALIDATION_SPLIT)*100)}/{int(VALIDATION_SPLIT*100)})...")
+    print(
+        f"\n🔄 Organisation du dataset (split "
+        f"{int((1 - VALIDATION_SPLIT) * 100)}/"
+        f"{int(VALIDATION_SPLIT * 100)})..."
+    )
 
     for class_name in classes:
         (train_dir / class_name).mkdir(exist_ok=True)
@@ -83,14 +90,19 @@ def organize_dataset(source_folder):
             + list(class_folder.glob("*.[pP][nN][gG]"))
         )
 
-        train_imgs, val_imgs = train_test_split(images, test_size=VALIDATION_SPLIT, random_state=42)
+        train_imgs, val_imgs = train_test_split(
+            images, test_size=VALIDATION_SPLIT, random_state=42
+        )
 
         for img in train_imgs:
             shutil.copy(img, train_dir / class_name / img.name)
         for img in val_imgs:
             shutil.copy(img, val_dir / class_name / img.name)
 
-        print(f"   ✓ {class_name}: {len(train_imgs)} train, {len(val_imgs)} validation")
+        print(
+            f"   ✓ {class_name}: {len(train_imgs)} "
+            f"train, {len(val_imgs)} validation"
+        )
 
     return train_dir, val_dir, classes
 
@@ -105,7 +117,9 @@ def create_dataloaders(train_dir, val_dir):
                 transforms.RandomRotation(40),
                 transforms.ColorJitter(brightness=0.2, contrast=0.2),
                 transforms.ToTensor(),
-                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                transforms.Normalize(
+                    [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
+                ),
             ]
         ),
         "val": transforms.Compose(
@@ -113,7 +127,9 @@ def create_dataloaders(train_dir, val_dir):
                 transforms.Resize(256),
                 transforms.CenterCrop(IMG_SIZE[0]),
                 transforms.ToTensor(),
-                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                transforms.Normalize(
+                    [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
+                ),
             ]
         ),
     }
@@ -121,8 +137,12 @@ def create_dataloaders(train_dir, val_dir):
     train_dataset = datasets.ImageFolder(train_dir, data_transforms["train"])
     val_dataset = datasets.ImageFolder(val_dir, data_transforms["val"])
 
-    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
-    val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=4)
+    train_loader = DataLoader(
+        train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=4
+    )
+    val_loader = DataLoader(
+        val_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=4
+    )
 
     return train_loader, val_loader
 
@@ -151,7 +171,15 @@ class TrainingDashboard:
         self.first_draw = True
         self.last_height = 0
 
-    def update(self, epoch_idx, t_loss=None, t_acc=None, v_loss=None, v_acc=None, status="RUN"):
+    def update(
+        self,
+        epoch_idx,
+        t_loss=None,
+        t_acc=None,
+        v_loss=None,
+        v_acc=None,
+        status="RUN",
+    ):
         if status == "RUN":
             self.epoch_stats[epoch_idx]["status"] = "RUN"
         elif status == "DONE":
@@ -177,7 +205,7 @@ class TrainingDashboard:
                 if idx < self.total_epochs:
                     stats = self.epoch_stats[idx]
                     status = stats["status"]
-                    epo_label = f"Epoch {idx+1:02d}"
+                    epo_label = f"Epoch {idx + 1:02d}"
                     header_str += f"{epo_label:^14}   "
 
                     if status == "WAIT":
@@ -188,8 +216,14 @@ class TrainingDashboard:
                         content_l2 = f"\033[93m{'...':^14}\033[0m"
                     else:
                         # T:99% L.12
-                        t_str = f"T:{stats['t_acc']*100:.0f}% L{stats['t_loss']:.2f}"
-                        v_str = f"V:{stats['v_acc']*100:.0f}% L{stats['v_loss']:.2f}"
+                        t_str = (
+                            f"T:{stats['t_acc']*100:.0f}% "
+                            f"L{stats['t_loss']:.2f}"
+                        )
+                        v_str = (
+                            f"V:{stats['v_acc']*100:.0f}% "
+                            f"L{stats['v_loss']:.2f}"
+                        )
                         content_l1 = f"\033[92m{t_str:^14}\033[0m"
                         content_l2 = f"\033[96m{v_str:^14}\033[0m"
 
@@ -222,7 +256,9 @@ def train_model(model, train_loader, val_loader):
     optimizer = optim.Adam(model.classifier.parameters(), lr=0.001)
 
     # Learning rate scheduler
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode="max", factor=0.5, patience=3)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer, mode="max", factor=0.5, patience=3
+    )
 
     history = {"accuracy": [], "val_accuracy": [], "loss": [], "val_loss": []}
 
@@ -303,7 +339,14 @@ def train_model(model, train_loader, val_loader):
                 history["val_loss"].append(v_l)
                 history["val_accuracy"].append(v_a)
 
-                dashboard.update(epoch, t_loss=t_l, t_acc=t_a, v_loss=v_l, v_acc=v_a, status="DONE")
+                dashboard.update(
+                    epoch,
+                    t_loss=t_l,
+                    t_acc=t_a,
+                    v_loss=v_l,
+                    v_acc=v_a,
+                    status="DONE",
+                )
                 dashboard.draw(pbar)
 
                 # Update scheduler
@@ -421,12 +464,12 @@ def main():
     print("\n" + "=" * 70)
     print("📊 RÉSULTATS FINAUX")
     print("=" * 70)
-    print(f"   Best Val Accuracy: {final_acc*100:.2f}%")
+    print(f"   Best Val Accuracy: {final_acc * 100:.2f}%")
 
     if final_acc >= TARGET_ACCURACY:
-        print(f"\n   ✅ Objectif atteint (>= {TARGET_ACCURACY*100}%)")
+        print(f"\n   ✅ Objectif atteint (>= {TARGET_ACCURACY * 100}%)")
     else:
-        print(f"\n   ⚠️  Objectif non atteint (< {TARGET_ACCURACY*100}%)")
+        print(f"\n   ⚠️  Objectif non atteint (< {TARGET_ACCURACY * 100}%)")
 
     save_package(model, classes, history, source_folder)
 

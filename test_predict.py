@@ -115,7 +115,9 @@ def get_true_label_from_path(img_path):
     return parent
 
 
-def test_on_folder(model, metadata, images_folder, max_images=50, per_class=None):
+def test_on_folder(
+    model, metadata, images_folder, max_images=50, per_class=None
+):
     """Test le modèle sur un dossier d'images
 
     Args:
@@ -172,7 +174,9 @@ def test_on_folder(model, metadata, images_folder, max_images=50, per_class=None
     for img_path in all_images:
         try:
             true_label = get_true_label_from_path(img_path)
-            predicted_class, confidence, top_3 = predict_image(model, metadata, img_path)
+            predicted_class, confidence, top_3 = predict_image(
+                model, metadata, img_path
+            )
 
             is_correct = predicted_class == true_label
 
@@ -209,7 +213,7 @@ def test_on_folder(model, metadata, images_folder, max_images=50, per_class=None
     accuracy = (correct / total * 100) if total > 0 else 0
 
     print("=" * 80)
-    print(f"\n📊 RÉSULTATS GLOBAUX")
+    print("\n📊 RÉSULTATS GLOBAUX")
     print("=" * 80)
     print(f"   Total images testées : {total}")
     print(f"   Prédictions correctes : {correct}")
@@ -218,9 +222,9 @@ def test_on_folder(model, metadata, images_folder, max_images=50, per_class=None
 
     # Objectif du projet
     if accuracy >= 90:
-        print(f"\n   🎉 Objectif atteint ! (>= 90%)")
+        print("\n   🎉 Objectif atteint ! (>= 90%)")
     else:
-        print(f"\n   ⚠️  Objectif non atteint (< 90%)")
+        print("\n   ⚠️  Objectif non atteint (< 90%)")
 
     # Afficher les erreurs
     errors = [r for r in results if not r["correct"]]
@@ -232,13 +236,16 @@ def test_on_folder(model, metadata, images_folder, max_images=50, per_class=None
         for i, err in enumerate(errors[:10], 1):  # Limiter à 10 erreurs
             print(f"\n{i}. {err['image']}")
             print(f"   Vrai label    : {err['true_label']}")
-            print(f"   Prédit        : {err['predicted']} ({err['confidence']:.1f}%)")
-            print(f"   Top 3 prédictions :")
+            print(
+                f"   Prédit        : {err['predicted']}"
+                f"({err['confidence']:.1f}%)"
+            )
+            print("   Top 3 prédictions :")
             for cls, conf in err["top_3"]:
                 print(f"      - {cls:25s} : {conf:5.1f}%")
 
     # Matrice de confusion simplifiée
-    print(f"\n📊 DISTRIBUTION PAR CLASSE")
+    print("\n📊 DISTRIBUTION PAR CLASSE")
     print("=" * 80)
 
     # Grouper par classe
@@ -255,8 +262,15 @@ def test_on_folder(model, metadata, images_folder, max_images=50, per_class=None
     # Afficher
     for cls in sorted(class_stats.keys()):
         stats = class_stats[cls]
-        cls_accuracy = (stats["correct"] / stats["total"] * 100) if stats["total"] > 0 else 0
-        print(f"   {cls:25s} : {stats['correct']:2d}/{stats['total']:2d} ({cls_accuracy:5.1f}%)")
+        cls_accuracy = (
+            (stats["correct"] / stats["total"] * 100)
+            if stats["total"] > 0
+            else 0
+        )
+        print(
+            f"   {cls:25s} : {stats['correct']:2d}/{stats['total']:2d} "
+            f"({cls_accuracy:5.1f}%)"
+        )
 
     print("=" * 80)
 
@@ -265,7 +279,10 @@ def test_on_folder(model, metadata, images_folder, max_images=50, per_class=None
 
 def main():
     if len(sys.argv) < 3:
-        print("Usage: python test_predict.py <model.zip> <images_folder> [max_images] [per_class]")
+        print(
+            "Usage: python test_predict.py <model.zip> <images_folder> "
+            "[max_images] [per_class]"
+        )
         print("\nExemples:")
         print("  python test_predict.py images_model.zip ./images/")
         print("  python test_predict.py images_model.zip ./images/ 100")
@@ -273,8 +290,12 @@ def main():
         print("  python test_predict.py images_model.zip ./images/ 1000 all")
         print("\nArguments:")
         print("  max_images  : Nombre total maximum d'images (défaut: 50)")
-        print("  per_class   : Images par classe (défaut: 10, 'all' = illimité)")
-        print("\nCe script teste le modèle sur plusieurs images automatiquement")
+        print(
+            "  per_class   : Images par classe (défaut: 10, 'all' = illimité)"
+        )
+        print(
+            "\nCe script teste le modèle sur plusieurs images automatiquement"
+        )
         sys.exit(1)
 
     model_zip = sys.argv[1]
@@ -303,7 +324,10 @@ def main():
     print("🧪 TEST AUTOMATIQUE DE PREDICT.PY")
     print("=" * 80)
     print(f"   Max images total : {max_images}")
-    print(f"   Max par classe   : {'Illimité' if per_class is None else per_class}")
+    print(
+        f"   Max par classe   : "
+        f"{'Illimité' if per_class is None else per_class}"
+    )
 
     # Timer
     start_time = time.time()
@@ -317,16 +341,22 @@ def main():
     model, metadata = load_model_and_metadata(model_dir)
 
     print(f"   Classes : {len(metadata['classes'])}")
-    print(f"   Accuracy training : {metadata['final_train_accuracy']*100:.2f}%")
-    print(f"   Accuracy validation : {metadata['final_val_accuracy']*100:.2f}%")
+    print(
+        f"   Accuracy training : {metadata['final_train_accuracy']*100:.2f}%"
+    )
+    print(
+        f"   Accuracy validation : {metadata['final_val_accuracy']*100:.2f}%"
+    )
 
     # 3. Test sur les images
-    accuracy, results = test_on_folder(model, metadata, images_folder, max_images, per_class)
+    accuracy, results = test_on_folder(
+        model, metadata, images_folder, max_images, per_class
+    )
 
     # 4. Temps d'exécution
     elapsed = time.time() - start_time
     print(f"\n⏱️  Temps d'exécution : {elapsed:.2f} secondes")
-    print(f"   Temps moyen par image : {elapsed/len(results):.3f}s")
+    print(f"   Temps moyen par image : {elapsed / len(results):.3f}s")
 
     # 5. Nettoyage
     shutil.rmtree(model_dir)

@@ -1,1 +1,1 @@
-840e2bc695b5545a404e480ef5dd4dfb155829d9  images_model.zip
+8d9b4a95d3fcca2b92743a1dca910cdebee8f0db  images_model.zip

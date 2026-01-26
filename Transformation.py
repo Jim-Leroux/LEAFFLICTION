@@ -31,7 +31,9 @@ def transform_image(img_path):
 
     # 5️⃣ Analyze Object (draw contours)
     # Trouve les objets dans le masque
-    contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, hierarchy = cv2.findContours(
+        mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+    )
     analyze = img.copy()
     cv2.drawContours(analyze, contours, -1, (255, 0, 0), 2)
 
@@ -49,17 +51,29 @@ def transform_image(img_path):
 
         # Génère les pseudolandmarks (20 points par défaut)
         try:
-            top, bottom, center_v = pcv.homology.x_axis_pseudolandmarks(img, mask, obj_contour)
-            left, right, center_h = pcv.homology.y_axis_pseudolandmarks(img, mask, obj_contour)
+            top, bottom, center_v = pcv.homology.x_axis_pseudolandmarks(
+                img, mask, obj_contour
+            )
+            left, right, center_h = pcv.homology.y_axis_pseudolandmarks(
+                img, mask, obj_contour
+            )
 
             # Dessine les landmarks
             all_points = np.vstack([top, bottom, left, right])
             for point in all_points:
                 if len(point) >= 2:
-                    cv2.circle(pseudo, (int(point[0]), int(point[1])), 3, (0, 255, 0), -1)
-        except:
+                    cv2.circle(
+                        pseudo,
+                        (int(point[0]), int(point[1])),
+                        3,
+                        (0, 255, 0),
+                        -1,
+                    )
+        except BaseException:
             # Fallback si la méthode PlantCV échoue
-            for i in range(0, len(largest_contour), max(1, len(largest_contour) // 20)):
+            for i in range(
+                0, len(largest_contour), max(1, len(largest_contour) // 20)
+            ):
                 x, y = largest_contour[i][0]
                 cv2.circle(pseudo, (x, y), 3, (0, 255, 0), -1)
 
@@ -110,7 +124,9 @@ def save_transformations(src_file, dst_dir):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Outil de transformation d'images de feuilles avec PlantCV")
+    parser = argparse.ArgumentParser(
+        description="Outil de transformation d'images de feuilles avec PlantCV"
+    )
     parser.add_argument("-src", required=True, help="Image ou dossier source")
     parser.add_argument("-dst", help="Dossier destination (optionnel)")
 
