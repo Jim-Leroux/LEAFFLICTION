@@ -67,19 +67,19 @@ if __name__ == "__main__":
 
     path_to_folder = Path(sys.argv[1])
 
-    # if not path_to_folder.is_file():
-    #     sys.exit("The path does not refer to a file")
+    if not path_to_folder.is_file():
+        sys.exit("The path does not refer to a file")
 
-    # augment_by_file(path_to_folder)
+    augment_by_file(path_to_folder)
 
-    if not path_to_folder.is_dir():
-        sys.exit("The path does not refer to a folder")
+    # if not path_to_folder.is_dir():
+    #     sys.exit("The path does not refer to a folder")
 
-    destination_path = Path("augmented_directory")
+    # destination_path = Path("augmented_directory")
 
-    Path.mkdir(destination_path, exist_ok=True)
+    # Path.mkdir(destination_path, exist_ok=True)
 
-    augment_by_folder(path_to_folder, destination_path.resolve())
+    # augment_by_folder(path_to_folder, destination_path.resolve())
 
 
 # By file cmd : python ex02.py images/Apple_Black_rot/image\ \(1\).JPG
