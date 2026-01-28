@@ -1,70 +1,57 @@
-import matplotlib.pyplot as plt
 import sys
 
 from pathlib import Path
 
-labels = []
-counts = []
+import matplotlib.pyplot as plt
+
+data = {}
 
 
-def get_data(images):
-    case_dict = {}
+def images_counter(dir):
+    number_of_images = 0
+    for files in dir.iterdir():
+        ext = ['.jpg', '.jpeg', '.png']
+        if files.is_file() and files.suffix.lower() in ext:
+            number_of_images += 1
+    return (number_of_images)
 
-    # For each repository :
-    for element in images.iterdir():
-        if not element.is_dir():
-            continue
 
-        case_name = element.name
-
-        # Split name and state
-        parts = element.name.split("_", 1)
-        species, state = parts if len(parts) == 2 else (parts[0], "unknown")
-
-        # List each images
-        img_files = [f for f in element.iterdir() if f.is_file()]
-
-        if case_name not in case_dict:
-            case_dict[case_name] = {}
-        case_dict[case_name] = {
-            "species": species,
-            "state": state,
-            "path": element,
-            "images_nb": len(img_files),  # "files": img_files
-        }
-
-    return case_dict
+def get_data(path_to_folder):
+    for dir in path_to_folder.iterdir():
+        if dir.is_dir():
+            data[dir.name] = images_counter(dir)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python Distribution.py <images_folder>")
-        sys.exit(1)
+    if len(sys.argv) != 2:
+        sys.exit("Usage: python Distribution.py <path to folder>")
 
-    images = Path(sys.argv[1])
+    path_to_folder = Path(sys.argv[1])
 
-    case_dict = get_data(images)
+    if not path_to_folder.is_dir():
+        sys.exit("The path does not refer to a folder.")
 
-    for case, infos in case_dict.items():
-        labels.append(case)
-        counts.append(infos["images_nb"])
+    get_data(path_to_folder)
 
-    print(labels)
-    print(counts)
+    if not data:
+        sys.exit("The folder appears to be empty.")
 
-    colors = plt.cm.tab20.colors[: len(labels)]
+    colors = plt.cm.tab20.colors[: len(data.keys())]
 
     # --- Pie Charts ---
     plt.figure(figsize=(10, 10))
-    plt.pie(counts, labels=labels, autopct="%1.1f%%", colors=colors)
+    plt.pie(
+        data.values(), labels=data.keys(), autopct="%1.1f%%", colors=colors)
     plt.title("Répartition des images par plante et état")
     plt.show()
 
     # --- Bar Charts ---
     plt.figure(figsize=(10, 5))
-    plt.bar(labels, counts, color=colors)
+    plt.bar(data.keys(), data.values(), color=colors)
     plt.xticks(rotation=45, ha="right")
     plt.ylabel("Nombre d'images")
     plt.title("Histogramme du nombre d'images par cas")
     plt.tight_layout()
     plt.show()
+
+    sys.exit(1)

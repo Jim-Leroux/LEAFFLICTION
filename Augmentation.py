@@ -1,118 +1,98 @@
-import os
 import sys
 
-from PIL import Image, ImageFilter, ImageEnhance
 from pathlib import Path
 
+from PIL import Image, ImageFilter, ImageEnhance
 
-def increase_by_folder(folder):
-    images = Path(folder)
-    out_root = Path("augmented_directory")
-    out_root.mkdir(exist_ok=True)
-
-    # Boucle sur chaque sous-dossier
-    for subfolder in images.iterdir():
-        if subfolder.is_dir():
-            out_dir = out_root / subfolder.name
-            out_dir.mkdir(exist_ok=True)
-
-            for element in subfolder.iterdir():
-                if element.suffix.lower() in [".jpg", ".jpeg", ".png"]:
-                    img = Image.open(element)
-                    name = element.stem
-                    ext = element.suffix
-
-                    # 1. Rotation
-                    img.rotate(45).save(out_dir / f"{name}_rotated{ext}")
-
-                    # 2. Blur
-                    img.filter(ImageFilter.GaussianBlur(radius=5)).save(
-                        out_dir / f"{name}_blurred{ext}"
-                    )
-
-                    # 3. Contrast
-                    ImageEnhance.Contrast(img).enhance(1.5).save(
-                        out_dir / f"{name}_contrast{ext}"
-                    )
-
-                    # 4. Zoom (x2)
-                    w, h = img.size
-                    crop = img.crop(
-                        (w / 4, h / 4, w * 3 / 4, h * 3 / 4)
-                    ).resize((w, h))
-                    crop.save(out_dir / f"{name}_zoom{ext}")
-
-                    # 5. Illumination
-                    ImageEnhance.Brightness(img).enhance(1.8).save(
-                        out_dir / f"{name}_bright{ext}"
-                    )
-
-                    # 6. Projective
-                    coeffs = (1, 0.2, -100, 0.2, 1, -50, 0.001, 0.001)
-                    img.transform((w, h), Image.PERSPECTIVE, coeffs).save(
-                        out_dir / f"{name}_projective{ext}"
-                    )
-
-    print(f"Toutes les images ont été augmentées dans : {out_root}")
+import shutil
 
 
-def increase_by_file(file):
+def augment_images(file, sub_directory_path):
+    if file.suffix.lower() in [".jpg", ".jpeg", ".png"]:
+        with Image.open(file) as img:
+            img.load()
+            name = file.stem
+            ext = file.suffix
+            w, h = img.size
 
-    os.makedirs("by_file", exist_ok=True)
+        shutil.copy(file, sub_directory_path / f"{name}{ext}")
 
-    file = Path(file)
-    img = Image.open(file)
+        img.rotate(45).save(sub_directory_path / f"{name}_rotated{ext}")
 
-    f_name = file.name.split(".")
-    name = f_name[0]
-    extension = f_name[1]
+        img.filter(ImageFilter.GaussianBlur(radius=5)).save(
+            sub_directory_path / f"{name}_blurred{ext}"
+        )
 
-    print(file.name)
+        ImageEnhance.Contrast(img).enhance(1.5).save(
+            sub_directory_path / f"{name}_contrast{ext}"
+        )
 
-    # 1. Rotation (ici 45°)
-    rotated = img.rotate(45)
-    rotated.save(f"by_file/{name}_rotated.{extension}")
+        w, h = img.size
+        crop = img.crop(
+            (w / 4, h / 4, w * 3 / 4, h * 3 / 4)
+        ).resize((w, h))
+        crop.save(sub_directory_path / f"{name}_zoom{ext}")
 
-    # 2. Blur (flou gaussien)
-    blurred = img.filter(ImageFilter.GaussianBlur(radius=1))
-    blurred.save(f"by_file/{name}_blurred.{extension}")
+        ImageEnhance.Brightness(img).enhance(1.8).save(
+            sub_directory_path / f"{name}_bright{ext}"
+        )
 
-    # 3. Contrast (x1.9)
-    contrast = ImageEnhance.Contrast(img).enhance(1.9)
-    contrast.save(f"by_file/{name}_contrast.{extension}")
+        coeffs = (1, 0.2, -100, 0.2, 1, -50, 0.001, 0.001)
+        img.transform((w, h), Image.PERSPECTIVE, coeffs).save(
+            sub_directory_path / f"{name}_projective{ext}"
+        )
 
-    # 4. Scaling (Zoom en x2)
-    w, h = img.size
 
-    # définir la zone de zoom (ici zoom 2x sur le centre)
-    left = w / 4
-    top = h / 4
-    right = w * 3 / 4
-    bottom = h * 3 / 4
+def augment_by_folder(path_to_folder, destination_path):
+    folders = [d for d in path_to_folder.iterdir() if d.is_dir()]
 
-    zoomed = img.crop((left, top, right, bottom))
-    zoomed = zoomed.resize((w, h))  # remettre la taille originale
-    zoomed.save(f"by_file/{name}_zoom.{extension}")
+    max_img = max(len(list(d.glob('*'))) for d in folders)
 
-    # 5. Illumination (luminosité x1.8)
-    bright = ImageEnhance.Brightness(img).enhance(1.8)
-    bright.save(f"by_file/{name}_bright.{extension}")
+    for directory in folders:
+        sub_dst = destination_path / directory.name
+        sub_dst.mkdir(exist_ok=True)
+        ext = [".jpg", ".jpeg", ".png"]
+        images = [f for f in directory.iterdir() if f.suffix.lower() in ext]
 
-    # 6. Projective transform (perspective)
-    # on définit les coefficients pour transformer
-    # ligne 1  # ligne 2  # ligne 3 (courbure perspective)
-    coeffs = (1, 0.2, -100, 0.2, 1, -50, 0.001, 0.001)
-    projective = img.transform(
-        (img.width, img.height), Image.PERSPECTIVE, coeffs
-    )
-    projective.save(f"by_file/{name}_projective.{extension}")
+        for img_path in images:
+            shutil.copy(img_path, sub_dst)
+
+        current_count = len(images)
+        img_index = 0
+
+        while current_count < max_img:
+            source_file = images[img_index % len(images)]
+            augment_images(source_file, sub_dst)
+            current_count += 6
+            img_index += 1
+
+
+def augment_by_file(path_to_file):
+    destination_path = Path("augmented_directory_by_file")
+
+    Path.mkdir(destination_path, exist_ok=True)
+    augment_images(path_to_file, destination_path)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python Augmentation.py <images_folder>")
-        sys.exit()
+    if len(sys.argv) != 2:
+        sys.exit("Usage: python Augmentation.py <path to folder>")
 
-    increase_by_file(sys.argv[1])
+    path_to_folder = Path(sys.argv[1])
 
-    # increase_by_folder(sys.argv[1])
+    if not path_to_folder.is_file():
+        sys.exit("The path does not refer to a file")
+
+    augment_by_file(path_to_folder)
+
+    # if not path_to_folder.is_dir():
+    #     sys.exit("The path does not refer to a folder")
+
+    # destination_path = Path("augmented_directory")
+
+    # Path.mkdir(destination_path, exist_ok=True)
+
+    # augment_by_folder(path_to_folder, destination_path.resolve())
+
+
+# By file cmd : python ex02.py images/Apple_Black_rot/image\ \(1\).JPG
