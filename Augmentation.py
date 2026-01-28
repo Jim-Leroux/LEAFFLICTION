@@ -44,14 +44,27 @@ def augment_images(file, sub_directory_path):
 
 
 def augment_by_folder(path_to_folder, destination_path):
-    destination_path
-    for directory in path_to_folder.iterdir():
-        if directory.is_dir():
-            sub_directory_path = destination_path / directory.name
-            sub_directory_path.mkdir(exist_ok=True)
-            for file in directory.iterdir():
-                print(file)
-                augment_images(file, sub_directory_path)
+    folders = [d for d in path_to_folder.iterdir() if d.is_dir()]
+
+    max_img = max(len(list(d.glob('*'))) for d in folders)
+
+    for directory in folders:
+        sub_dst = destination_path / directory.name
+        sub_dst.mkdir(exist_ok=True)
+        ext = [".jpg", ".jpeg", ".png"]
+        images = [f for f in directory.iterdir() if f.suffix.lower() in ext]
+
+        for img_path in images:
+            shutil.copy(img_path, sub_dst)
+
+        current_count = len(images)
+        img_index = 0
+
+        while current_count < max_img:
+            source_file = images[img_index % len(images)]
+            augment_images(source_file, sub_dst)
+            current_count += 6
+            img_index += 1
 
 
 def augment_by_file(path_to_file):
