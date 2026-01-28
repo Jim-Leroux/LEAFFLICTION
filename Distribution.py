@@ -6,17 +6,21 @@ import matplotlib.pyplot as plt
 
 data = {}
 
+
 def images_counter(dir):
     number_of_images = 0
     for files in dir.iterdir():
-        if files.is_file() and files.suffix.lower() in ['.jpg', '.jpeg', '.png']:
+        ext = ['.jpg', '.jpeg', '.png']
+        if files.is_file() and files.suffix.lower() in ext:
             number_of_images += 1
     return (number_of_images)
+
 
 def get_data(path_to_folder):
     for dir in path_to_folder.iterdir():
         if dir.is_dir():
             data[dir.name] = images_counter(dir)
+
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
@@ -36,7 +40,8 @@ if __name__ == "__main__":
 
     # --- Pie Charts ---
     plt.figure(figsize=(10, 10))
-    plt.pie(data.values(), labels=data.keys(), autopct="%1.1f%%", colors=colors)
+    plt.pie(
+        data.values(), labels=data.keys(), autopct="%1.1f%%", colors=colors)
     plt.title("Répartition des images par plante et état")
     plt.show()
 
